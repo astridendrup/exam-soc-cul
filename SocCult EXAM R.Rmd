@@ -1,0 +1,959 @@
+---
+title: "SocCult EXAM"
+author: "Ida & Astrid"
+date: "10 apr 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("~/COGNITIVE SCIENCE/Computational Modeling/simulation runs")
+library(tidyverse)
+
+#create data frame for means and SDs
+d <- expand.grid(Percentage_affected = c("25%", "50%", "75%", "100%"),
+            Prob_English_event = c("50", "75", "100"))
+
+d$Pct_English_words_spoken <- c(25.54, 25.90, 26.00, 27.29,
+                                35.22, 47.57, 58.77, 67.21,
+                                47.59, 67.61, 77.50, 82.86)
+
+d$sd_pct_English_words_spoken<- c(1.71, 2.38, 3.25, 4.39,
+                                2.50, 3.72, 3.71, 3.23,
+                                2.27, 1.48, 1.14, 0.79)
+
+d$Pct_English_turtles <- c(0.65, 0.8, 1.23, 2.03,
+                                22.20, 84.32, 99.56, 100,
+                                87.01, 100.00, 100.00, 100.00)
+
+d$sd_pct_English_turtles<- c(0.82, 1.46, 2.14, 3.82,
+                                7.79, 9.56, 0.91, 0.00,
+                                5.05, 0.00, 0.00, 0.00)
+
+summarizeeventlang100 <- eventlang100_turtlepct %>%
+  group_by(turtlepercent) %>%
+  summarise(mean(percenteng, digits = 2), mean(percentengturtles), sd(percenteng), sd(percentengturtles))
+
+d$Prob_English_event <-as.factor(d$Prob_English_event) #for the plots
+```
+
+#PLOTS
+```{r}
+#plot of 2-way-interaction:
+p1 <- ggplot(d, aes(x = Percentage_affected, y = Pct_English_words_spoken,
+              color = Prob_English_event, group = Prob_English_event)) +
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin = Pct_English_words_spoken - sd_pct_English_words_spoken, ymax = Pct_English_words_spoken + sd_pct_English_words_spoken), width=0.2) +
+  labs(title = "% English words spoken at simulation end \n (means from 100 runs)", x = "% agents affected by each media event", y = "% English words spoken at simulation end") +
+  scale_color_discrete(name = "% English events") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(0, 100))
+
+p2 <- ggplot(d, aes(x = Percentage_affected, y = Pct_English_turtles,
+              color = Prob_English_event, group = Prob_English_event)) +
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin = Pct_English_turtles - sd_pct_English_turtles, ymax = Pct_English_turtles + sd_pct_English_turtles), width=0.2) +
+  labs(title = "% English agents at simulation end \n (means from 100 runs)", x = "% agents affected by each media event", y = "% English agents at simulation end") +
+  scale_color_discrete(name = "% English events") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+p1
+p2
+```
+
+```{r}
+#VARYING EVENTLANG
+eventlang74 <- read.table("eventlang74-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+eventlang99 <- read.table("eventlang99-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+eventlang49 <- read.table("eventlang49-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+```
+
+```{r}
+#DATA WITH VARYING TURTLEPERCENT AND FIXED EVENTLANGS
+eventlang75_turtlepct <- read.table("eventlang_75-turtlepercent 25,50,75,100-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+eventlang50_turtlepct <- read.table("eventlang_50, turtlepercent, 25,75,100-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+eventlang100_turtlepct <- read.table("eventlang_99, turtlepercent, 25,75,100-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+```
+
+```{r}
+#LOAD DATA FOR PLOTS OVER TIME
+
+#event over time (eventlang 75 100, affected 50)
+timeeventlang75_100_aff50 <- read.table("event_over_time_dan+eng-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+#subset into two data frames for the two conditions:
+#EVENTLANG75,AFF50
+timeevent75aff50 <- subset(timeeventlang75_100_aff50, eventlang == 74)
+#EVENTLANG100,AFF50
+timeevent100aff50 <- subset(timeeventlang75_100_aff50, eventlang == 99)
+```
+
+```{r}
+#PLOTS OVER TIME
+
+##no event over time##
+#PCT WORDS
+p3 <- ggplot(noevent_time, aes(x = X.step., y = percenteng, color = X.run.number., group = X.run.number.)) +
+  geom_line()
+#ADD MEAN LINE
+p3
+
+#PCT TURTLES
+p4 <- ggplot(noevent_time, aes(x = X.step., y = percentengturtles, color = X.run.number. , group = X.run.number.)) +
+  geom_point()
+#ADD MEAN LINE
+#scale y-axis - go to 100
+p4
+
+##EVENT_TIME##
+#EVENTLANG75
+
+#PCT WORDS
+p5 <- ggplot(timeevent75aff50, aes(x = X.step.)) +
+  geom_line(aes(y = percenteng, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdan, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent75aff50$percentdan), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent75aff50$percenteng), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish spoken words over time \n (75% English events, 50% affected)", x = "Ticks", y = "Pct. spoken words (red = Danish, blue = English)") +
+  theme(legend.position = "none")
+  
+#PCT AGENTS
+p6 <- ggplot(timeevent75aff50, aes(x = X.step.)) +
+  geom_line(aes(y = percentengturtles, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdanturtles, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent75aff50$percentdanturtles), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent75aff50$percentengturtles), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish agents over time \n (75% English events, 50% affected)", x = "Ticks", y = "Pct. Danish (red) and English (blue) agents") +
+  theme(legend.position = "none")
+
+#SAME PLOTS FOR EVENTLANG100, AFFECTED50
+#PCT WORDS
+p7 <- ggplot(timeevent100aff50, aes(x = X.step.)) +
+  geom_line(aes(y = percenteng, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdan, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent100aff50$percentdan), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent100aff50$percenteng), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish spoken words over time \n (100% English events, 50% affected)", x = "Ticks", y = "Pct. spoken words (red = Danish, blue = English)") +
+  theme(legend.position = "none")
+  
+#PCT TURTLES
+p8 <- ggplot(timeevent100aff50, aes(x = X.step.)) +
+  geom_line(aes(y = percentengturtles, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdanturtles, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent100aff50$percentdanturtles), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent100aff50$percentengturtles), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish agents over time \n (100% English events, 50% affected)", x = "Ticks", y = "Pct. Danish (red) and English (blue) agents") +
+  theme(legend.position = "none")
+```
+
+
+
+
+
+Plots for the different combination of parameters in the model 
+```{r}
+setwd("~/Desktop")
+
+#event over time (eventlang 100, affected 25, 50, 75, 100)
+timeeventlang100 <- read.table("eventlang100_over_time-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+#subset into two data frames for the two conditions:
+#EVENTLANG100,AFF25
+timeevent100aff25 <- subset(timeeventlang100, turtlepercent == 0.25)
+#EVENTLANG100,AFF50
+### timeevent100aff50 <- subset(timeeventlang75_100_aff50, eventlang == 99)
+#EVENTLANG100,AFF75
+timeevent100aff75 <- subset(timeeventlang100, turtlepercent == 0.75)
+#EVENTLANG100,AFF100
+timeevent100aff100 <- subset(timeeventlang100, turtlepercent == 1)
+
+
+
+####### PLOT 1 #######
+#EVENTLANG100,AFF25
+#PCT ENG WORDS:
+ggplot(timeevent100aff25, aes(x = X.step.)) +
+  geom_line(aes(y = percenteng, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdan, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent100aff25$percentdan), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent100aff25$percenteng), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish spoken words over time \n (100% English events, 25% affected)", x = "Ticks", y = "Pct. spoken words (red = Danish, blue = English)") +
+  theme(legend.position = "none")
+
+#PCT ENG TURTLES:
+ggplot(timeevent100aff25, aes(x = X.step.)) +
+  geom_line(aes(y = percentengturtles, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdanturtles, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent100aff25$percentdanturtles), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent100aff25$percentengturtles), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish agents over time \n (100% English events, 25% affected)", x = "Ticks", y = "Pct. Danish (red) and English (blue) agents") +
+  theme(legend.position = "none")
+
+
+
+
+####### PLOT 2 #######
+#EVENTLANG100,AFF75
+#PCT ENG WORDS:
+ggplot(timeevent100aff75, aes(x = X.step.)) +
+  geom_line(aes(y = percenteng, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdan, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent100aff75$percentdan), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent100aff75$percenteng), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish spoken words over time \n (100% English events, 75% affected)", x = "Ticks", y = "Pct. spoken words (red = Danish, blue = English)") +
+  theme(legend.position = "none")
+
+#PCT ENG TURTLES:
+ggplot(timeevent100aff75, aes(x = X.step.)) +
+  geom_line(aes(y = percentengturtles, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdanturtles, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent100aff75$percentdanturtles), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent100aff75$percentengturtles), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish agents over time \n (100% English events, 75% affected)", x = "Ticks", y = "Pct. Danish (red) and English (blue) agents") +
+  theme(legend.position = "none")
+
+
+
+####### PLOT 3 #######
+#EVENTLANG100,AFF100
+#PCT ENG WORDS:
+ggplot(timeevent100aff100, aes(x = X.step.)) +
+  geom_line(aes(y = percenteng, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdan, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent100aff100$percentdan), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent100aff100$percenteng), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish spoken words over time \n (100% English events, 100% affected)", x = "Ticks", y = "Pct. spoken words (red = Danish, blue = English)") +
+  theme(legend.position = "none")
+
+#PCT ENG TURTLES:
+ggplot(timeevent100aff100, aes(x = X.step.)) +
+  geom_line(aes(y = percentengturtles, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdanturtles, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = timeevent100aff100$percentdanturtles), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = timeevent100aff100$percentengturtles), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish agents over time \n (100% English events, 100% affected)", x = "Ticks", y = "Pct. Danish (red) and English (blue) agents") +
+  theme(legend.position = "none")
+```
+
+
+```{r}
+####### plot 4 ######
+#NO EVENT OVER TIME 
+
+#no-event over time
+noevent_overtime <- read.table("no_event_over_time_dan+eng-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+#PCT ENG WORDS:
+ggplot(noevent_overtime, aes(x = X.step.)) +
+  geom_line(aes(y = percenteng, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdan, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = noevent_overtime$percentdan), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = noevent_overtime$percenteng), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish spoken words over time \n (no events)", x = "Ticks", y = "Pct. spoken words (red = Danish, blue = English)") +
+  theme(legend.position = "none")
+
+#PCT ENG TURTLES:
+ggplot(noevent_overtime, aes(x = X.step.)) +
+  geom_line(aes(y = percentengturtles, group = X.run.number.), col = "dodgerblue3", alpha = 0.2) +
+  geom_line(aes(y = percentdanturtles, group = X.run.number.), col = "red", alpha = 0.2) +
+  stat_summary(aes(y = noevent_overtime$percentdanturtles), geom = "line", fun.y = "mean", col = "red4") +
+  stat_summary(aes(y = noevent_overtime$percentengturtles), geom = "line", fun.y = "mean", col = "navy") +
+  labs(title = "Pct. English & Danish agents over time \n (no events)", x = "Ticks", y = "Pct. Danish (red) and English (blue) agents") +
+  theme(legend.position = "none")
+
+
+```
+
+
+Histograms of weight distribution in beginning and end of simulation 
+```{r}
+########### HISTOGRAMS #############
+
+#starting histograms 
+start_his <- read.table("no_event_starting_histograms-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+#all weights
+start_hist <- subset(start_his, X.step. == 1)
+start_hist$hugeweightlist <- str_replace_all(start_hist$hugeweightlist, "\\[|\\]","")
+
+allweights <- start_hist$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=1000)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:1001]
+finaldf <- as.data.frame(finallistofmeans)
+
+####HISTOGRAM OF STARTING DISTRIBUTION#####
+ggplot(finaldf, aes(x = finallistofmeans)) +
+geom_histogram(binwidth = 0.01, fill = "white", col = "mediumpurple") +
+geom_vline(aes(xintercept = mean(finallistofmeans)),
+            color="purple4", linetype="dashed") +
+labs(title = "Starting distribution of all weights", x = "Weight value", y = "Count") +
+  theme(plot.title=element_text(hjust=0.5))
+
+
+```
+
+
+
+```{r}
+########Danish and English starting distributions###########
+
+#Subsetting Danish and English weight values from starting weights data (start_hist)
+#Danish
+danweights <- as.data.frame(start_hist$hugedanweightlist)
+names(danweights) <- "hugeweightlist"
+danweights$hugeweightlist <- str_replace_all(danweights$hugeweightlist, "\\[|\\]","")
+#English
+engweights <- as.data.frame(start_hist$hugeengweightlist)
+names(engweights) <- "hugeweightlist"
+engweights$hugeweightlist <- str_replace_all(engweights$hugeweightlist, "\\[|\\]","")
+
+```
+
+
+```{r}
+#Danish Weights
+allweights <- danweights$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=500)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:501]
+danfinaldf <- as.data.frame(finallistofmeans)
+
+```
+
+
+```{r}
+#English Weights
+allweights <- engweights$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=500)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:501]
+engfinaldf <- as.data.frame(finallistofmeans)
+
+
+####HISTOGRAM OF ENGLISH AND DANISH WEIGHTS#####
+
+danfinaldf$language <- "danish"
+engfinaldf$language <- "english"
+
+bothfinaldf2 <- data.frame(rep(0,500))
+bothfinaldf2$danmeans <- danfinaldf$finallistofmeans
+bothfinaldf2$engmeans <- engfinaldf$finallistofmeans
+
+
+ggplot(bothfinaldf2, aes(x = finallistofmeans)) +
+  geom_histogram((aes(x = engmeans)), fill = "dodgerblue3", col = "white", binwidth = 0.01) +
+  geom_histogram((aes(x = danmeans)), fill = "red", col = "white", binwidth = 0.01, alpha = 0.4) +
+      geom_vline(aes(xintercept = mean(danmeans)), col = "red", linetype = "dashed") +
+      geom_vline(aes(xintercept = mean(engmeans)), col = "blue", linetype = "dashed") +       
+labs(title = "Starting distribution of weights \n (English = blue, Danish = red)", x = "Weight value", y = "Count") +
+theme(legend.position = "none",plot.title=element_text(hjust=0.5))
+
+```
+
+
+
+```{r}
+############Danish and English ending distributions (No event)###########
+
+#Ending weights data
+end_his <- read.table("no_event_ending_histograms-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+
+#Subsetting Danish and English weight values
+#Danish
+danweights <- as.data.frame(end_his$hugedanweightlist)
+names(danweights) <- "hugeweightlist"
+#English
+engweights <- as.data.frame(end_his$hugeengweightlist)
+names(engweights) <- "hugeweightlist"
+
+```
+
+
+
+```{r}
+#Danish Weights
+danweights$hugeweightlist <- str_replace_all(danweights$hugeweightlist, "\\[|\\]","")
+
+allweights <- danweights$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=500)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:501]
+danfinaldf <- as.data.frame(finallistofmeans)
+
+```
+
+
+```{r}
+#English Weights
+
+engweights$hugeweightlist <- str_replace_all(engweights$hugeweightlist, "\\[|\\]","")
+
+allweights <- engweights$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=500)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:501]
+engfinaldf <- as.data.frame(finallistofmeans)
+
+
+####HISTOGRAM OF ENGLISH AND DANISH WEIGHTS#####
+
+danfinaldf$language <- "danish"
+engfinaldf$language <- "english"
+
+bothfinaldf <- dplyr::union_all(danfinaldf, engfinaldf)
+
+bothfinaldf2 <- data.frame(rep(0,500))
+bothfinaldf2$danmeans <- danfinaldf$finallistofmeans
+bothfinaldf2$engmeans <- engfinaldf$finallistofmeans
+
+
+ggplot(bothfinaldf2, aes(x = finallistofmeans)) +
+  geom_histogram((aes(x = engmeans)), fill = "dodgerblue3", col = "white", binwidth = 0.01) +
+  geom_histogram((aes(x = danmeans)), fill = "red", col = "white", binwidth = 0.01, alpha = 0.4) +
+      geom_vline(aes(xintercept = mean(danmeans)), col = "red", linetype = "dashed") +
+      geom_vline(aes(xintercept = mean(engmeans)), col = "blue", linetype = "dashed") +       
+labs(title = "Ending distribution of weights \n (no event) \n (English = blue, Danish = red)", x = "Weight value", y = "Count") +
+theme(legend.position = "none",plot.title=element_text(hjust=0.5))
+
+
+```
+
+
+
+```{r}
+
+###########ending histograms ALL WEIGHTS############# 
+
+end_hist <- read.table("no_event_ending_histograms-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+#all weights
+end_hist$hugeweightlist <- str_replace_all(end_hist$hugeweightlist, "\\[|\\]","")
+
+allweights <- end_hist$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=1000)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:1001]
+finaldf <- as.data.frame(finallistofmeans)
+
+####HISTOGRAM OF STARTING DISTRIBUTION#####
+ggplot(finaldf, aes(x = finallistofmeans)) +
+geom_histogram(binwidth = 0.01, fill = "white", col = "mediumpurple") +
+geom_vline(aes(xintercept = mean(finallistofmeans)),
+            color="purple4", linetype="dashed") +
+labs(title = "Ending distribution of all weights \n (no events)", x = "Weight value", y = "Count") +
+  theme(plot.title=element_text(hjust=0.5))
+```
+
+
+
+
+```{r}
+
+##########Ending histograms for eventlang 75, affected 50##########
+
+#Ending weights data
+end_his <- read.table("eventlang75,100_affected50_ending_histograms-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+
+#subset into two data frames for the two conditions:
+#EVENTLANG75,AFF50
+timeevent75aff50 <- subset(end_his, eventlang == 74)
+#EVENTLANG100,AFF50
+timeevent100aff50 <- subset(end_his, eventlang == 99)
+
+
+
+#Subsetting Danish and English weight values (Eventlang = 75%)
+#Danish
+danweights <- as.data.frame(timeevent75aff50$hugedanweightlist)
+names(danweights) <- "hugeweightlist"
+#English
+engweights <- as.data.frame(timeevent75aff50$hugeengweightlist)
+names(engweights) <- "hugeweightlist"
+
+
+```
+
+
+
+```{r}
+#Danish Weights
+danweights$hugeweightlist <- str_replace_all(danweights$hugeweightlist, "\\[|\\]","")
+
+allweights <- danweights$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=500)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:501]
+danfinaldf <- as.data.frame(finallistofmeans)
+
+```
+
+
+```{r}
+#English Weights
+
+engweights$hugeweightlist <- str_replace_all(engweights$hugeweightlist, "\\[|\\]","")
+
+allweights <- engweights$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=500)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:501]
+engfinaldf <- as.data.frame(finallistofmeans)
+
+
+####HISTOGRAM OF ENGLISH AND DANISH WEIGHTS#####
+
+danfinaldf$language <- "danish"
+engfinaldf$language <- "english"
+
+bothfinaldf2 <- data.frame(rep(0,500))
+bothfinaldf2$danmeans <- danfinaldf$finallistofmeans
+bothfinaldf2$engmeans <- engfinaldf$finallistofmeans
+
+
+ggplot(bothfinaldf2, aes(x = finallistofmeans)) +
+  geom_histogram((aes(x = engmeans)), fill = "dodgerblue3", col = "white", binwidth = 0.01) +
+  geom_histogram((aes(x = danmeans)), fill = "red", col = "white", binwidth = 0.01, alpha = 0.4) +
+      geom_vline(aes(xintercept = mean(danmeans)), col = "red", linetype = "dashed") +
+      geom_vline(aes(xintercept = mean(engmeans)), col = "blue", linetype = "dashed") +       
+labs(title = "Ending distribution of weights \n (75% English events, 50% affected) \n (English = blue, Danish = red)", x = "Weight value", y = "Count") +
+theme(legend.position = "none",plot.title=element_text(hjust=0.5))
+
+
+```
+
+
+```{r}
+###########Ending histograms for eventlang 100, affected 50#########
+
+#Subsetting Danish and English weight values (Eventlang = 100%)
+#Danish
+danweights <- as.data.frame(timeevent100aff50$hugedanweightlist)
+names(danweights) <- "hugeweightlist"
+#English
+engweights <- as.data.frame(timeevent100aff50$hugeengweightlist)
+names(engweights) <- "hugeweightlist"
+```
+
+```{r}
+#Danish Weights
+danweights$hugeweightlist <- str_replace_all(danweights$hugeweightlist, "\\[|\\]","")
+
+allweights <- danweights$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=500)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:501]
+danfinaldf <- as.data.frame(finallistofmeans)
+
+```
+
+
+```{r}
+#English Weights
+
+engweights$hugeweightlist <- str_replace_all(engweights$hugeweightlist, "\\[|\\]","")
+
+allweights <- engweights$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=500)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:501]
+engfinaldf <- as.data.frame(finallistofmeans)
+
+
+####HISTOGRAM OF ENGLISH AND DANISH WEIGHTS#####
+
+danfinaldf$language <- "danish"
+engfinaldf$language <- "english"
+
+bothfinaldf <- dplyr::union_all(danfinaldf, engfinaldf)
+
+bothfinaldf2 <- data.frame(rep(0,500))
+bothfinaldf2$danmeans <- danfinaldf$finallistofmeans
+bothfinaldf2$engmeans <- engfinaldf$finallistofmeans
+
+
+ggplot(bothfinaldf2, aes(x = finallistofmeans)) +
+  geom_histogram((aes(x = engmeans)), fill = "dodgerblue3", col = "white", binwidth = 0.01) +
+  geom_histogram((aes(x = danmeans)), fill = "red", col = "white", binwidth = 0.01, alpha = 0.4) +
+      geom_vline(aes(xintercept = mean(danmeans)), col = "red", linetype = "dashed") +
+      geom_vline(aes(xintercept = mean(engmeans)), col = "blue", linetype = "dashed") +       
+labs(title = "Ending distribution of weights \n (100% English events, 50% affected) \n (English = blue, Danish = red)", x = "Weight value", y = "Count") +
+theme(legend.position = "none",plot.title=element_text(hjust=0.5))
+
+
+```
+
+
+
+```{r}
+#########ending histograms ALL WEIGHTS (With eventlang 75)###########
+
+#Ending weights data
+end_hist <- read.table("eventlang75,100_affected50_ending_histograms-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+
+#subset into two data frames for the two conditions:
+#EVENTLANG100,AFF50
+timeevent75aff50 <- subset(end_hist, eventlang == 74)
+
+
+#all weights
+timeevent75aff50$hugeweightlist <- str_replace_all(timeevent75aff50$hugeweightlist, "\\[|\\]","")
+
+allweights <- timeevent75aff50$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=1000)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:1001]
+finaldf <- as.data.frame(finallistofmeans)
+
+####HISTOGRAM OF STARTING DISTRIBUTION#####
+ggplot(finaldf, aes(x = finallistofmeans)) +
+geom_histogram(binwidth = 0.01, fill = "white", col = "mediumpurple") +
+geom_vline(aes(xintercept = mean(finallistofmeans)),
+            color="purple4", linetype="dashed") +
+labs(title = "Ending distribution of all weights \n (75% English events, 50% affected)", x = "Weight value", y = "Count") +
+  theme(plot.title=element_text(hjust=0.5))
+```
+
+
+
+```{r}
+###########ending histograms ALL WEIGHTS (With eventlang 100)###########
+
+
+#EVENTLANG100,AFF100
+timeevent100aff50 <- subset(end_hist, eventlang == 99)
+
+#all weights
+timeevent100aff100$hugeweightlist <- str_replace_all(timeevent100aff100$hugeweightlist, "\\[|\\]","")
+
+allweights <- timeevent100aff100$hugeweightlist
+allweights <- str_split(allweights, " ")
+allweightsdataframe <- as.data.frame(allweights) 
+names(allweightsdataframe) <- 1:100
+
+
+#Loop through columns in allweightsdataframe, an put numeric lists into new dataframe
+sortedlists <- data.frame(matrix(nrow=100,ncol=1000)) #empty datafra
+
+for (i in names(allweightsdataframe)) {
+  list <- as.numeric(as.list(levels(allweightsdataframe[[i]])))
+  sortedlists[i, ] <-  list 
+}
+
+listofmeans <- (0)
+
+#Loop through sortedlists and create list with only the means
+for (i in names(sortedlists)) {
+  mean <- mean(sortedlists[[i]])
+  listofmeans[i] <- mean
+}
+
+finallistofmeans <- listofmeans[2:1001]
+finaldf <- as.data.frame(finallistofmeans)
+
+####HISTOGRAM OF STARTING DISTRIBUTION#####
+ggplot(finaldf, aes(x = finallistofmeans)) +
+geom_histogram(binwidth = 0.01, fill = "white", col = "mediumpurple") +
+geom_vline(aes(xintercept = mean(finallistofmeans)),
+            color="purple4", linetype="dashed") +
+labs(title = "Ending distribution of all weights \n (100% English events, 50% affected)", x = "Weight value", y = "Count") +
+  theme(plot.title=element_text(hjust=0.5))
+
+
+```
+
+
+
+
+
