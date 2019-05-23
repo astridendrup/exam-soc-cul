@@ -10,8 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-setwd("~/COGNITIVE SCIENCE/Computational Modeling/simulation runs")
-library(tidyverse)
+
+library(tidyverse); library(stringr)
 
 #create data frame for means and SDs
 d <- expand.grid(Percentage_affected = c("25%", "50%", "75%", "100%"),
@@ -955,5 +955,69 @@ labs(title = "Ending distribution of all weights \n (100% English events, 50% af
 
 
 
+```{r}
+#### Plot of words used over time ####
+setwd("~/Desktop")
+eventwords <- read.table("eventwords_spokenwords-table.csv",
+                   header = T,  
+                   sep = ',',        # define the separator between columns
+                   skip = 6,         # 6 header rows we don't need
+                   quote = "\"",     # correct the column separator
+                   fill = T)
+
+
+
+#Words over time (over 250 conversations) - NOT average over each run 
+test <- subset(eventwords, X.run.number.== 1)
+#define [] as NA
+test[test == "[]"] <- NA
+# exclude NAs
+counteventword <- subset(test, eventword != "NA")
+counteventword <- subset(test2, eventword != "0")
+
+wordcounts <- subset(test, nicecount != "NA")
+wordcounts <- wordcounts[-1,]
+
+wordcounts$laekkertcount <- wordcounts$"l<c3><a6>kkertcount"
+wordcounts$skoentcount <- wordcounts$"sk<c3><b8>ntcount"
+
+wordcounts %>% 
+  as.character(wordcounts)
+
+#Plot one line for each words
+ggplot(wordcounts, aes(x = X.step., y = coolcount)) +
+  geom_point(aes(y = nicecount), col = "dodgerblue3", alpha = 0.2) +
+  geom_point(aes(y = coolcount), col = "red", alpha = 0.2) +
+  scale_y_discrete(limits=c(0,100))
+  geom_line(aes(y = funkycount), col = "red", alpha = 0.2) +
+  geom_line(aes(y = awesomecount), col = "red", alpha = 0.2) +
+  geom_line(aes(y = sweetcount), col = "red", alpha = 0.2) +
+  geom_line(aes(y = fedtcount), col = "red", alpha = 0.2) +
+  geom_line(aes(y = "l<c3><a6>kkertcount"), col = "red", alpha = 0.2) +
+  geom_line(aes(y = dejligtcount), col = "red", alpha = 0.2) +
+  geom_line(aes(y = sejtcount), col = "red", alpha = 0.2) +
+  geom_line(aes(y = "sk<c3><b8>ntcount"), col = "red", alpha = 0.2) +
+  scale_y_discrete(limits=c(0,100))
+
+
+```
+
+
+```{r}
+
+#### Histogram of event words over time ####
+
+#count words in "eventword"
+#Lækkert
+# count(timeeventlang75_100_aff50, vars = "99")
+
+# df$freq<-str_count(df$word,'\\w+')+1
+
+#data.frame(table(unlist(strsplit(tolower(dat$1a), " "))))
+
+#Fedt
+
+#plot word counts
+```
 
 
