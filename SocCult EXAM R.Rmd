@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 
-library(tidyverse); library(stringr)
+library(tidyverse); library(stringr) ; library(data.table)
 
 #create data frame for means and SDs
 d <- expand.grid(Percentage_affected = c("25%", "50%", "75%", "100%"),
@@ -968,56 +968,111 @@ eventwords <- read.table("eventwords_spokenwords-table.csv",
 
 
 #Words over time (over 250 conversations) - NOT average over each run 
-test <- subset(eventwords, X.run.number.== 1)
+test <- subset(eventwords, X.run.number.== 11)
 #define [] as NA
 test[test == "[]"] <- NA
 # exclude NAs
 counteventword <- subset(test, eventword != "NA")
-counteventword <- subset(test2, eventword != "0")
+counteventword <- subset(counteventword, eventword != "0")
 
 wordcounts <- subset(test, nicecount != "NA")
 wordcounts <- wordcounts[-1,]
 
-wordcounts$laekkertcount <- wordcounts$"l<c3><a6>kkertcount"
-wordcounts$skoentcount <- wordcounts$"sk<c3><b8>ntcount"
+# Rename columns with strange names
+names(wordcounts)[24]<-"laekkertcount"
+names(wordcounts)[27]<-"skoentcount"
 
-wordcounts %>% 
-  as.character(wordcounts)
+# Make all columns numeric
+bob <- data.frame(lapply(wordcounts, as.character), stringsAsFactors=FALSE)
+wordcountsnum <- data.frame(lapply(bob, as.numeric), stringsAsFactors=FALSE)
 
 #Plot one line for each words
-ggplot(wordcounts, aes(x = X.step., y = coolcount)) +
-  geom_point(aes(y = nicecount), col = "dodgerblue3", alpha = 0.2) +
-  geom_point(aes(y = coolcount), col = "red", alpha = 0.2) +
-  scale_y_discrete(limits=c(0,100))
-  geom_line(aes(y = funkycount), col = "red", alpha = 0.2) +
-  geom_line(aes(y = awesomecount), col = "red", alpha = 0.2) +
-  geom_line(aes(y = sweetcount), col = "red", alpha = 0.2) +
-  geom_line(aes(y = fedtcount), col = "red", alpha = 0.2) +
-  geom_line(aes(y = "l<c3><a6>kkertcount"), col = "red", alpha = 0.2) +
-  geom_line(aes(y = dejligtcount), col = "red", alpha = 0.2) +
-  geom_line(aes(y = sejtcount), col = "red", alpha = 0.2) +
-  geom_line(aes(y = "sk<c3><b8>ntcount"), col = "red", alpha = 0.2) +
-  scale_y_discrete(limits=c(0,100))
+ggplot(wordcountsnum, aes(x = X.step.)) +
+  geom_point(aes(y = nicecount), col = "dodgerblue3", alpha = 0.5) +
+  geom_point(aes(y = coolcount), col = "red", alpha = 0.5) +
+  geom_point(aes(y = funkycount), col = "black", alpha = 0.5) +
+  geom_point(aes(y = awesomecount), col = "white", alpha = 0.5) +
+  geom_point(aes(y = sweetcount), col = "purple", alpha = 0.5) +
+  geom_point(aes(y = fedtcount), col = "pink", alpha = 0.5) +
+  geom_point(aes(y = laekkertcount), col = "orange", alpha = 0.5) +
+  geom_point(aes(y = dejligtcount), col = "green", alpha = 0.5) +
+  geom_point(aes(y = sejtcount), col = "grey", alpha = 0.5) +
+  geom_point(aes(y = skoentcount), col = "yellow", alpha = 0.5) +
+  ylim(0, 60) +
+  labs(y = "Percent",x = "Time")
 
+## With lines - and colored after language? 
+ggplot(wordcountsnum, aes(x = X.step.)) +
+  geom_line(aes(y = nicecount), col = "dodgerblue3", alpha = 0.5) +
+  geom_line(aes(y = coolcount), col = "dodgerblue3", alpha = 0.5) +
+  geom_line(aes(y = funkycount), col = "dodgerblue3", alpha = 0.5) +
+  geom_line(aes(y = awesomecount), col = "dodgerblue3", alpha = 0.5) +
+  geom_line(aes(y = sweetcount), col = "dodgerblue3", alpha = 0.5) +
+  geom_line(aes(y = fedtcount), col = "red", alpha = 0.5) +
+  geom_line(aes(y = laekkertcount), col = "red", alpha = 0.5) +
+  geom_line(aes(y = dejligtcount), col = "red", alpha = 0.5) +
+  geom_line(aes(y = sejtcount), col = "red", alpha = 0.5) +
+  geom_line(aes(y = skoentcount), col = "red", alpha = 0.5) +
+  ylim(0, 60) +
+  labs(y = "Percent",x = "Time")
 
+## only the two most common event words and least common words
+ggplot(wordcountsnum, aes(x = X.step.)) +
+  geom_line(aes(y = nicecount, colour = "nice"), alpha = 0.5) +
+  geom_line(aes(y = coolcount, colour = "cool"), alpha = 0.5) +
+  geom_line(aes(y = sejtcount, colour = "sejt"), alpha = 0.5) +
+  geom_line(aes(y = skoentcount, colour = "skoent"), alpha = 0.5) +
+  ylim(0, 60) +
+  scale_colour_manual("", 
+                      breaks = c("nice", "cool", "sejt", "skoent"),
+                      values = c("dodgerblue1", "dodgerblue4", "firebrick1", "firebrick4")) +
+  labs(title = "Use of most common and least common event word over time", x = "Time", y = "Percent") +
+  theme(plot.title=element_text(hjust=0.5))
 ```
 
 
 ```{r}
 
-#### Histogram of event words over time ####
+#### Histogram of event words over time #### (NOT averaged over trials)
+#new dataframe equal to eventwords
+countevents <- subset(eventwords, X.run.number.== 11)
+#define [] as NA
+countevents[countevents == "[]"] <- NA
+# exclude NAs
+counteventword <- subset(countevents, eventword != "NA")
+counteventword <- subset(counteventword, eventword != "0")
 
-#count words in "eventword"
-#Lækkert
-# count(timeeventlang75_100_aff50, vars = "99")
+#Exact number of times each word was the event word
+countdf <- counteventword %>% 
+  count(eventword)
 
-# df$freq<-str_count(df$word,'\\w+')+1
+# subset english and danish event words
+eventword_eng <- subset(counteventword, eventword == "nice" | eventword == "cool" | eventword == "awesome" | eventword == "funky" | eventword == "sweet")
+eventword_dan <- subset(counteventword, eventword != "nice")
+eventword_dan <- subset(eventword_dan, eventword != "cool")
+eventword_dan <- subset(eventword_dan, eventword != "awesome")
+eventword_dan <- subset(eventword_dan, eventword != "funky")
+eventword_dan <- subset(eventword_dan, eventword != "sweet")
 
-#data.frame(table(unlist(strsplit(tolower(dat$1a), " "))))
 
-#Fedt
+#histogram - only eng words
+ggplot(eventword_eng, aes(x = eventword)) +
+geom_bar(fill="blue",aes(alpha=.7)) +
+  labs(title = "Distribution of English event words", x = "word", y = "Count") +
+  theme(plot.title=element_text(hjust=0.5))
 
-#plot word counts
+#histogram - only dan words
+ggplot(eventword_dan, aes(x = eventword)) +
+geom_bar(fill="red", aes(alpha=0.7)) +
+  labs(title = "Distribution of Danish event words", x = "word", y = "Count") + 
+  theme(plot.title=element_text(hjust=0.5))
+
+# histogram - all words 
+ggplot() +
+geom_bar(data = eventword_eng, aes(x = eventword), fill="dodgerblue3",alpha=0.7) +
+  geom_bar(data = eventword_dan, aes(x = eventword), fill="red", alpha=0.7) +
+  labs(title = "Distribution of event words", x = "Word", y = "Count") +
+  theme(plot.title=element_text(hjust=0.5))
 ```
 
 
