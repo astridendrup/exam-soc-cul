@@ -1019,14 +1019,18 @@ ggplot(wordcountsnum, aes(x = X.step.)) +
 ## only the two most common event words and least common words
 ggplot(wordcountsnum, aes(x = X.step.)) +
   geom_line(aes(y = nicecount, colour = "nice"), alpha = 0.5) +
+  geom_point(aes(y = nicecount, colour = "nice"), size = 0.2) + 
   geom_line(aes(y = coolcount, colour = "cool"), alpha = 0.5) +
+  geom_point(aes(y = coolcount, colour = "cool"), size = 0.2) +
   geom_line(aes(y = sejtcount, colour = "sejt"), alpha = 0.5) +
+  geom_point(aes(y = sejtcount, colour = "sejt"), size = 0.2) +
   geom_line(aes(y = skoentcount, colour = "skoent"), alpha = 0.5) +
+  geom_point(aes(y = skoentcount, colour = "skoent"), size = 0.2) +
   ylim(0, 60) +
   scale_colour_manual("", 
                       breaks = c("nice", "cool", "sejt", "skoent"),
                       values = c("dodgerblue1", "dodgerblue4", "firebrick1", "firebrick4")) +
-  labs(title = "Use of most common and least common event word over time", x = "Time", y = "Percent") +
+  labs(title = "Use of most common and least common event words over time", x = "Time", y = "Count (past 250 conversations)") +
   theme(plot.title=element_text(hjust=0.5))
 ```
 
